@@ -1,0 +1,53 @@
+{
+  "version": 2,
+  "name": "smartvision-ocr-pro",
+  "env": {
+    "VERCEL": "true"
+  },
+  "builds": [
+    {
+      "src": "index.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "api/health.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "api/ocr.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "api/history.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/health",
+      "dest": "api/health.py"
+    },
+    {
+      "src": "/api/ocr",
+      "dest": "api/ocr.py"
+    },
+    {
+      "src": "/api/history",
+      "dest": "api/history.py"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=3600" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" }
+      ]
+    }
+  ]
+}

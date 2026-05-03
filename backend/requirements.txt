@@ -1,0 +1,12 @@
+flask==3.0.3
+flask-cors==4.0.1
+opencv-python-headless==4.9.0.80
+pytesseract==0.3.10
+easyocr==1.7.1
+textblob==0.18.0
+langdetect==1.0.9
+gTTS==2.5.1
+Pillow==10.3.0
+numpy==1.26.4
+fpdf2==2.7.9
+gunicorn==21.2.0

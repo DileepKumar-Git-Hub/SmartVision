@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SmartVision OCR Pro</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👁</text></svg>" />
+  <style>
+    /* ═══════════════════════════════════════════════
+       DESIGN TOKENS
+    ═══════════════════════════════════════════════ */
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --surface2: #1f2937;
+      --border: #30363d;
+      --accent: #00e5a0;
+      --accent2: #7c3aed;
+      --accent3: #f59e0b;
+      --text: #e6edf3;
+      --text2: #8b949e;
+      --danger: #f85149;
+      --success: #3fb950;
+      --info: #58a6ff;
+      --card-shadow: 0 4px 32px rgba(0,0,0,.5);
+      --radius: 12px;
+      --radius-sm: 8px;
+      --transition: .22s cubic-bezier(.4,0,.2,1);
+    }
+    [data-theme="light"] {
+      --bg: #f0f4f8;
+      --surface: #ffffff;
+      --surface2: #e8ecf0;
+      --border: #d0d7de;
+      --text: #1c2128;
+      --text2: #57606a;
+      --card-shadow: 0 4px 24px rgba(0,0,0,.12);
+    }
+
+    /* ═══════════════════════════════════════════════
+       RESET + BASE
+    ═══════════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      transition: background var(--transition), color var(--transition);
+    }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    input, textarea, select, button { font-family: inherit; }
+
+    /* ═══════════════════════════════════════════════
+       NAVBAR
+    ═══════════════════════════════════════════════ */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 28px;
+      height: 60px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 1.15rem; font-weight: 700; color: var(--accent);
+      text-decoration: none;
+    }
+    .nav-logo span { font-size: 1.5rem; }
+    .nav-right { display: flex; align-items: center; gap: 14px; }
+    .nav-tag {
+      font-size: .7rem; font-weight: 600; padding: 3px 9px;
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      border-radius: 99px; color: #fff; letter-spacing: .5px;
+    }
+    .theme-btn {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 99px; padding: 6px 14px; cursor: pointer;
+      color: var(--text); font-size: .82rem; transition: var(--transition);
+    }
+    .theme-btn:hover { background: var(--accent); color: #000; }
+
+    /* ═══════════════════════════════════════════════
+       TAB BAR
+    ═══════════════════════════════════════════════ */
+    .tab-bar {
+      display: flex; gap: 4px;
+      padding: 20px 28px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .tab-btn {
+      padding: 10px 22px; border: none; background: none;
+      color: var(--text2); font-size: .9rem; font-weight: 500;
+      border-bottom: 2px solid transparent; cursor: pointer;
+      transition: var(--transition); display: flex; align-items: center; gap: 7px;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active {
+      color: var(--accent); border-bottom-color: var(--accent);
+    }
+    .tab-panel { display: none; padding: 28px; animation: fadeIn .25s ease; }
+    .tab-panel.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ═══════════════════════════════════════════════
+       BACKEND CONFIG BANNER
+    ═══════════════════════════════════════════════ */
+    .config-banner {
+      background: linear-gradient(135deg, #7c3aed22, #00e5a022);
+      border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px 18px; margin-bottom: 24px;
+      display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    }
+    .config-banner label { font-size: .85rem; color: var(--text2); white-space: nowrap; }
+    .config-banner input {
+      flex: 1; min-width: 220px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 8px 12px;
+      color: var(--text); font-size: .88rem;
+    }
+    .config-banner input:focus { outline: none; border-color: var(--accent); }
+    .btn-save-url {
+      background: var(--accent); color: #000; font-weight: 600;
+      border: none; border-radius: var(--radius-sm); padding: 8px 18px;
+      cursor: pointer; transition: var(--transition); font-size: .85rem;
+    }
+    .btn-save-url:hover { opacity: .85; }
+    .status-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--text2); flex-shrink: 0;
+      transition: background .4s;
+    }
+    .status-dot.ok { background: var(--success); box-shadow: 0 0 8px var(--success); }
+    .status-dot.err { background: var(--danger); box-shadow: 0 0 8px var(--danger); }
+
+    /* ═══════════════════════════════════════════════
+       UPLOAD ZONE
+    ═══════════════════════════════════════════════ */
+    .upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius); padding: 48px 20px;
+      text-align: center; cursor: pointer;
+      transition: var(--transition);
+      background: var(--surface);
+      position: relative;
+    }
+    .upload-zone:hover, .upload-zone.drag-over {
+      border-color: var(--accent);
+      background: rgba(0,229,160,.05);
+    }
+    .upload-zone input[type="file"] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer;
+    }
+    .upload-icon { font-size: 3rem; margin-bottom: 12px; }
+    .upload-zone h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    .upload-zone p { color: var(--text2); font-size: .85rem; }
+    .upload-zone .formats {
+      margin-top: 14px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
+    }
+    .format-tag {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 99px; padding: 3px 11px; font-size: .74rem; color: var(--text2);
+    }
+
+    /* ═══════════════════════════════════════════════
+       BUTTONS
+    ═══════════════════════════════════════════════ */
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 20px; border-radius: var(--radius-sm);
+      font-weight: 600; font-size: .875rem; cursor: pointer;
+      border: none; transition: var(--transition);
+    }
+    .btn-primary { background: var(--accent); color: #000; }
+    .btn-primary:hover { opacity: .85; transform: translateY(-1px); }
+    .btn-secondary {
+      background: var(--surface2); color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { background: var(--border); }
+    .btn-danger { background: rgba(248,81,73,.15); color: var(--danger); border: 1px solid rgba(248,81,73,.3); }
+    .btn-danger:hover { background: rgba(248,81,73,.25); }
+    .btn-purple { background: var(--accent2); color: #fff; }
+    .btn-purple:hover { opacity: .85; }
+    .btn-amber { background: var(--accent3); color: #000; }
+    .btn-amber:hover { opacity: .85; }
+    .btn:disabled { opacity: .45; cursor: not-allowed; transform: none !important; }
+
+    /* ═══════════════════════════════════════════════
+       GRID + CARDS
+    ═══════════════════════════════════════════════ */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px;
+      box-shadow: var(--card-shadow);
+    }
+    .card-title {
+      font-size: .8rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--text2); margin-bottom: 14px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .card-title span { font-size: 1rem; }
+
+    /* ═══════════════════════════════════════════════
+       CONFIDENCE BAR
+    ═══════════════════════════════════════════════ */
+    .conf-block { margin-bottom: 10px; }
+    .conf-label {
+      display: flex; justify-content: space-between;
+      font-size: .8rem; margin-bottom: 5px;
+    }
+    .conf-bar-bg {
+      height: 8px; background: var(--surface2); border-radius: 99px; overflow: hidden;
+    }
+    .conf-bar-fill {
+      height: 100%; border-radius: 99px;
+      background: linear-gradient(90deg, var(--accent2), var(--accent));
+      transition: width 1s ease;
+    }
+
+    /* ═══════════════════════════════════════════════
+       OCR RESULTS
+    ═══════════════════════════════════════════════ */
+    #results-section { display: none; margin-top: 24px; }
+    .result-image-wrap {
+      position: relative; background: #000; border-radius: var(--radius); overflow: hidden;
+      max-height: 340px; display: flex; align-items: center; justify-content: center;
+    }
+    .result-image-wrap img { max-width: 100%; max-height: 340px; object-fit: contain; }
+    .text-area-edit {
+      width: 100%; min-height: 140px; resize: vertical;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 12px;
+      color: var(--text); font-size: .9rem; line-height: 1.6;
+    }
+    .text-area-edit:focus { outline: none; border-color: var(--accent); }
+    .highlighted-text {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 14px;
+      min-height: 100px; line-height: 1.8; font-size: .9rem;
+      white-space: pre-wrap; word-break: break-word;
+    }
+    .kw-highlight { background: rgba(245,158,11,.35); border-radius: 3px; padding: 0 2px; }
+    .correction-mark { text-decoration: underline; text-decoration-color: var(--accent3);
+                       text-decoration-style: wavy; cursor: help; }
+
+    /* ═══════════════════════════════════════════════
+       METADATA CHIPS
+    ═══════════════════════════════════════════════ */
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 5px 12px; border-radius: 99px; font-size: .78rem; font-weight: 600;
+    }
+    .chip-green { background: rgba(63,185,80,.15); color: var(--success); border: 1px solid rgba(63,185,80,.3); }
+    .chip-blue  { background: rgba(88,166,255,.15); color: var(--info); border: 1px solid rgba(88,166,255,.3); }
+    .chip-purple{ background: rgba(124,58,237,.2); color: #a78bfa; border: 1px solid rgba(124,58,237,.3); }
+    .chip-amber { background: rgba(245,158,11,.15); color: var(--accent3); border: 1px solid rgba(245,158,11,.3); }
+
+    /* ═══════════════════════════════════════════════
+       COMPARISON TABLE
+    ═══════════════════════════════════════════════ */
+    .comp-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+    .comp-table th, .comp-table td {
+      padding: 8px 14px; text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .comp-table th { color: var(--text2); font-weight: 600; }
+    .comp-table tr:last-child td { border-bottom: none; }
+    .winner-row td { background: rgba(0,229,160,.07); }
+
+    /* ═══════════════════════════════════════════════
+       EXPORT BUTTONS ROW
+    ═══════════════════════════════════════════════ */
+    .export-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+
+    /* ═══════════════════════════════════════════════
+       KEYWORD INPUT
+    ═══════════════════════════════════════════════ */
+    .keyword-row {
+      display: flex; gap: 10px; margin-bottom: 12px;
+    }
+    .keyword-row input {
+      flex: 1; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 9px 14px;
+      color: var(--text); font-size: .88rem;
+    }
+    .keyword-row input:focus { outline: none; border-color: var(--accent); }
+
+    /* ═══════════════════════════════════════════════
+       SPINNER / LOADER
+    ═══════════════════════════════════════════════ */
+    .loader-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.65);
+      display: none; align-items: center; justify-content: center;
+      z-index: 9999; flex-direction: column; gap: 16px;
+    }
+    .loader-overlay.visible { display: flex; }
+    .spinner {
+      width: 52px; height: 52px; border-radius: 50%;
+      border: 4px solid var(--border);
+      border-top-color: var(--accent);
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loader-text { color: var(--text); font-size: 1rem; font-weight: 500; }
+
+    /* ═══════════════════════════════════════════════
+       TOAST NOTIFICATIONS
+    ═══════════════════════════════════════════════ */
+    #toast-container {
+      position: fixed; bottom: 24px; right: 24px;
+      display: flex; flex-direction: column; gap: 10px; z-index: 9998;
+    }
+    .toast {
+      background: var(--surface); border: 1px solid var(--border);
+      border-left: 4px solid var(--accent); border-radius: var(--radius-sm);
+      padding: 12px 18px; font-size: .875rem; max-width: 320px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.4);
+      animation: slideIn .3s ease;
+    }
+    .toast.error { border-left-color: var(--danger); }
+    .toast.warn  { border-left-color: var(--accent3); }
+    @keyframes slideIn { from { opacity:0; transform: translateX(30px); } to { opacity:1; transform: translateX(0); } }
+
+    /* ═══════════════════════════════════════════════
+       CAMERA TAB
+    ═══════════════════════════════════════════════ */
+    #camera-feed {
+      width: 100%; border-radius: var(--radius);
+      background: #000; max-height: 380px; object-fit: cover;
+    }
+    .camera-controls { display: flex; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
+    #camera-canvas { display: none; }
+
+    /* ═══════════════════════════════════════════════
+       HISTORY TAB
+    ═══════════════════════════════════════════════ */
+    .search-bar {
+      display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;
+    }
+    .search-bar input, .search-bar input[type="date"] {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 9px 14px;
+      color: var(--text); font-size: .88rem;
+    }
+    .search-bar input[type="text"] { flex: 1; min-width: 180px; }
+    .search-bar input:focus { outline: none; border-color: var(--accent); }
+    .history-grid { display: flex; flex-direction: column; gap: 12px; }
+    .history-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px 18px;
+      cursor: pointer; transition: var(--transition);
+      display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: start;
+    }
+    .history-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .history-card h4 { font-size: .9rem; margin-bottom: 4px; }
+    .history-card p { color: var(--text2); font-size: .8rem; line-height: 1.5;
+                      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .history-meta { font-size: .75rem; color: var(--text2); white-space: nowrap; text-align: right; }
+    .history-meta .conf-badge {
+      display: inline-block; padding: 2px 8px; border-radius: 99px;
+      background: rgba(0,229,160,.15); color: var(--accent);
+      font-weight: 700; margin-top: 6px;
+    }
+    .empty-state {
+      text-align: center; padding: 60px 20px; color: var(--text2);
+    }
+    .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
+
+    /* ═══════════════════════════════════════════════
+       SUMMARY BOX
+    ═══════════════════════════════════════════════ */
+    .summary-box {
+      background: linear-gradient(135deg, rgba(124,58,237,.12), rgba(0,229,160,.08));
+      border: 1px solid rgba(124,58,237,.3);
+      border-radius: var(--radius); padding: 16px; margin-top: 12px;
+      font-size: .875rem; line-height: 1.7; font-style: italic; color: var(--text);
+    }
+
+    /* ═══════════════════════════════════════════════
+       AUDIO PLAYER
+    ═══════════════════════════════════════════════ */
+    #audio-player { width: 100%; margin-top: 10px; accent-color: var(--accent); }
+
+    /* ═══════════════════════════════════════════════
+       CORRECTIONS LIST
+    ═══════════════════════════════════════════════ */
+    .corrections-list {
+      display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;
+    }
+    .corr-chip {
+      background: rgba(245,158,11,.12); border: 1px solid rgba(245,158,11,.3);
+      border-radius: 99px; padding: 3px 10px; font-size: .76rem;
+    }
+    .corr-chip s { color: var(--text2); }
+    .corr-chip strong { color: var(--accent3); margin-left: 4px; }
+
+    /* ═══════════════════════════════════════════════
+       PROGRESS STEP INDICATOR
+    ═══════════════════════════════════════════════ */
+    .progress-steps {
+      display: flex; gap: 0; margin: 18px 0;
+    }
+    .step {
+      flex: 1; text-align: center; font-size: .72rem; padding: 6px 4px;
+      border-bottom: 2px solid var(--border); color: var(--text2);
+      transition: var(--transition);
+    }
+    .step.active { border-bottom-color: var(--accent); color: var(--accent); font-weight: 700; }
+    .step.done { border-bottom-color: var(--success); color: var(--success); }
+  </style>
+</head>
+<body>
+
+<!-- ─── LOADER ─────────────────────────────────────────────────────────── -->
+<div class="loader-overlay" id="loader">
+  <div class="spinner"></div>
+  <div class="loader-text" id="loader-msg">Processing with dual OCR engines…</div>
+</div>
+
+<!-- ─── TOAST ──────────────────────────────────────────────────────────── -->
+<div id="toast-container"></div>
+
+<!-- ─── NAVBAR ─────────────────────────────────────────────────────────── -->
+<nav>
+  <a class="nav-logo" href="#">
+    <span>👁</span> SmartVision OCR Pro
+  </a>
+  <div class="nav-right">
+    <span class="nav-tag">HYBRID AI</span>
+    <button class="theme-btn" onclick="toggleTheme()">🌗 Toggle Theme</button>
+  </div>
+</nav>
+
+<!-- ─── TAB BAR ────────────────────────────────────────────────────────── -->
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('upload',this)">📂 Upload / Extract</button>
+  <button class="tab-btn" onclick="switchTab('camera',this)">📷 Live Camera</button>
+  <button class="tab-btn" onclick="switchTab('history',this)">📚 History</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     TAB 1 — UPLOAD
+═══════════════════════════════════════════════════════════════════════ -->
+<div class="tab-panel active" id="tab-upload">
+
+  <!-- Backend URL config -->
+  <div class="config-banner">
+    <div class="status-dot" id="status-dot"></div>
+    <label>Backend URL:</label>
+    <input type="text" id="backend-url" value="http://localhost:5000" placeholder="https://your-backend.onrender.com" />
+    <button class="btn-save-url" onclick="saveBackendUrl()">✓ Connect</button>
+  </div>
+
+  <!-- Drag-drop zone -->
+  <div class="upload-zone" id="drop-zone"
+       ondrop="handleDrop(event)" ondragover="event.preventDefault(); this.classList.add('drag-over')"
+       ondragleave="this.classList.remove('drag-over')">
+    <input type="file" id="file-input" accept="image/*,.pdf" onchange="handleFile(this.files[0])" />
+    <div class="upload-icon">🖼️</div>
+    <h3>Drop image or PDF here</h3>
+    <p>or click to browse files</p>
+    <div class="formats">
+      <span class="format-tag">JPG</span><span class="format-tag">PNG</span>
+      <span class="format-tag">TIFF</span><span class="format-tag">BMP</span>
+      <span class="format-tag">PDF (page 1)</span>
+    </div>
+  </div>
+
+  <!-- Preview + Run -->
+  <div id="upload-preview" style="display:none; margin-top:18px; text-align:center;">
+    <img id="preview-img" style="max-height:240px; border-radius:var(--radius); margin-bottom:12px;" />
+    <br>
+    <button class="btn btn-primary" id="run-btn" onclick="runOCR()">⚡ Run SmartVision OCR</button>
+  </div>
+
+  <!-- Progress steps -->
+  <div class="progress-steps" id="progress-steps" style="display:none;">
+    <div class="step" id="s1">1 · Preprocess</div>
+    <div class="step" id="s2">2 · Tesseract</div>
+    <div class="step" id="s3">3 · EasyOCR</div>
+    <div class="step" id="s4">4 · NLP Fusion</div>
+    <div class="step" id="s5">5 · Done ✓</div>
+  </div>
+
+  <!-- Results section -->
+  <div id="results-section">
+    <div class="two-col">
+
+      <!-- Left: annotated image -->
+      <div class="card">
+        <div class="card-title"><span>🔍</span> Detected Text Regions</div>
+        <div class="result-image-wrap">
+          <img id="annotated-img" alt="Annotated" />
+        </div>
+      </div>
+
+      <!-- Right: meta chips + confidence -->
+      <div class="card">
+        <div class="card-title"><span>📊</span> OCR Analysis</div>
+        <div class="chips" id="meta-chips"></div>
+
+        <div id="conf-section"></div>
+
+        <div style="margin-top:16px;">
+          <div class="card-title"><span>📖</span> Summary</div>
+          <div class="summary-box" id="summary-box"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Engine comparison -->
+    <div class="card" style="margin-top:20px;">
+      <div class="card-title"><span>⚔️</span> Engine Comparison — Confidence Fusion</div>
+      <table class="comp-table" id="comp-table">
+        <thead>
+          <tr><th>Engine</th><th>Confidence</th><th>Excerpt (first 120 chars)</th><th>Status</th></tr>
+        </thead>
+        <tbody id="comp-body"></tbody>
+      </table>
+    </div>
+
+    <div class="two-col" style="margin-top:20px;">
+
+      <!-- Corrected text + edit -->
+      <div class="card">
+        <div class="card-title"><span>✏️</span> Extracted Text (Editable)</div>
+        <textarea class="text-area-edit" id="extracted-textarea" rows="8"></textarea>
+
+        <div style="margin-top: 10px;">
+          <div class="card-title"><span>🔧</span> Auto-Corrections</div>
+          <div class="corrections-list" id="corrections-list"></div>
+        </div>
+      </div>
+
+      <!-- Keyword highlight + TTS -->
+      <div class="card">
+        <div class="card-title"><span>🔑</span> Keyword Highlighter</div>
+        <div class="keyword-row">
+          <input type="text" id="keyword-input" placeholder="Enter keyword(s) separated by comma" />
+          <button class="btn btn-secondary" onclick="applyHighlight()">Highlight</button>
+        </div>
+        <div class="highlighted-text" id="highlighted-output">
+          <em style="color:var(--text2);">Text will appear here after extraction…</em>
+        </div>
+
+        <div style="margin-top:18px;">
+          <div class="card-title"><span>🔊</span> Voice Output (TTS)</div>
+          <button class="btn btn-purple" onclick="runTTS()">▶ Convert to Speech</button>
+          <audio id="audio-player" controls style="display:none;"></audio>
+        </div>
+      </div>
+    </div>
+
+    <!-- Export -->
+    <div class="card" style="margin-top:20px;">
+      <div class="card-title"><span>📤</span> Export Results</div>
+      <div class="export-row">
+        <button class="btn btn-secondary" onclick="exportResult('txt')">📄 Export TXT</button>
+        <button class="btn btn-amber" onclick="exportResult('json')">{ } Export JSON</button>
+        <button class="btn btn-danger" onclick="exportResult('pdf')">📕 Export PDF</button>
+        <button class="btn btn-primary" onclick="copyToClipboard()">📋 Copy Text</button>
+      </div>
+    </div>
+  </div>
+</div><!-- /tab-upload -->
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     TAB 2 — CAMERA
+═══════════════════════════════════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-camera">
+  <div class="config-banner" style="margin-bottom:20px;">
+    <span>📷</span>
+    <span style="color:var(--text2);font-size:.88rem;">
+      Click <strong>Start Camera</strong> to begin live capture. Use <strong>Capture & OCR</strong>
+      to extract text from the current frame.
+    </span>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title"><span>📷</span> Camera Feed</div>
+      <video id="camera-feed" autoplay playsinline></video>
+      <canvas id="camera-canvas"></canvas>
+      <div class="camera-controls">
+        <button class="btn btn-primary" id="cam-start-btn" onclick="startCamera()">▶ Start Camera</button>
+        <button class="btn btn-secondary" id="cam-stop-btn" onclick="stopCamera()" disabled>⏹ Stop</button>
+        <button class="btn btn-purple" id="cam-ocr-btn" onclick="captureAndOCR()" disabled>⚡ Capture & OCR</button>
+        <button class="btn btn-amber" id="cam-live-btn" onclick="toggleLiveOCR()">🔴 Live OCR OFF</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span>📝</span> Extracted Text (Live)</div>
+      <div class="highlighted-text" id="camera-result" style="min-height:200px;">
+        <em style="color:var(--text2);">Capture or enable Live OCR to see results…</em>
+      </div>
+      <div class="chips" id="camera-chips" style="margin-top:12px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     TAB 3 — HISTORY
+═══════════════════════════════════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-history">
+  <div class="search-bar">
+    <input type="text" id="search-q" placeholder="🔍 Search by keyword…" />
+    <input type="date" id="search-start" title="From date" />
+    <input type="date" id="search-end" title="To date" />
+    <button class="btn btn-primary" onclick="searchHistory()">Search</button>
+    <button class="btn btn-secondary" onclick="loadHistory()">↺ Reset</button>
+  </div>
+  <div id="history-count" style="font-size:.82rem; color:var(--text2); margin-bottom:14px;"></div>
+  <div class="history-grid" id="history-grid">
+    <div class="empty-state">
+      <div class="icon">📭</div>
+      <p>No history yet. Run an OCR scan to see results here.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════════════════════ */
+// Auto-detect backend: use same domain on Vercel, localhost for development
+let BACKEND = localStorage.getItem("ocr_backend") || (
+  window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+    ? "http://localhost:5000"
+    : window.location.origin
+);
+let lastResult = null;
+let cameraStream = null;
+let liveOCRInterval = null;
+let liveOCRActive = false;
+
+/* ═══════════════════════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════════════════════ */
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("backend-url").value = BACKEND;
+  pingBackend();
+  // history tab loads on switch
+});
+
+/* ═══════════════════════════════════════════════════════════════════════
+   THEME
+═══════════════════════════════════════════════════════════════════════ */
+function toggleTheme() {
+  const html = document.documentElement;
+  html.setAttribute("data-theme", html.getAttribute("data-theme") === "dark" ? "light" : "dark");
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TABS
+═══════════════════════════════════════════════════════════════════════ */
+function switchTab(name, btn) {
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+  document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById("tab-" + name).classList.add("active");
+  if (name === "history") loadHistory();
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   BACKEND CONFIG
+═══════════════════════════════════════════════════════════════════════ */
+function saveBackendUrl() {
+  BACKEND = document.getElementById("backend-url").value.replace(/\/$/, "");
+  localStorage.setItem("ocr_backend", BACKEND);
+  pingBackend();
+  toast("Backend URL saved!");
+}
+
+async function pingBackend() {
+  const dot = document.getElementById("status-dot");
+  try {
+    const r = await fetch(`${BACKEND}/api/health`, { signal: AbortSignal.timeout(4000) });
+    dot.className = r.ok ? "status-dot ok" : "status-dot err";
+  } catch {
+    dot.className = "status-dot err";
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   FILE HANDLING
+═══════════════════════════════════════════════════════════════════════ */
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById("drop-zone").classList.remove("drag-over");
+  const file = e.dataTransfer.files[0];
+  if (file) handleFile(file);
+}
+
+function handleFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const prev = document.getElementById("preview-img");
+    prev.src = ev.target.result;
+    document.getElementById("upload-preview").style.display = "block";
+    document.getElementById("results-section").style.display = "none";
+    window._currentFile = file;
+    window._currentPreviewSrc = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   MAIN OCR FLOW
+═══════════════════════════════════════════════════════════════════════ */
+async function runOCR() {
+  if (!window._currentFile) { toast("Upload an image first.", "warn"); return; }
+
+  showLoader("Running Tesseract + EasyOCR fusion…");
+  showProgressSteps();
+  activateStep(1);
+
+  const form = new FormData();
+  form.append("image", window._currentFile);
+
+  try {
+    activateStep(2);
+    await delay(300);
+    activateStep(3);
+    const res = await fetch(`${BACKEND}/api/ocr`, { method: "POST", body: form });
+    activateStep(4);
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || "OCR failed");
+    doneStep(5);
+    lastResult = data;
+    renderResults(data);
+    toast("✅ OCR complete! Extracted " + data.word_count + " words.");
+  } catch (err) {
+    toast("❌ " + err.message, "error");
+  } finally {
+    hideLoader();
+  }
+}
+
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   RENDER RESULTS
+═══════════════════════════════════════════════════════════════════════ */
+function renderResults(data) {
+  document.getElementById("results-section").style.display = "block";
+
+  // Annotated image
+  document.getElementById("annotated-img").src = "data:image/jpeg;base64," + data.annotated_image;
+
+  // Meta chips
+  document.getElementById("meta-chips").innerHTML = `
+    <span class="chip chip-green">🌐 ${data.language}</span>
+    <span class="chip chip-blue">📊 ${data.confidence.toFixed(1)}% Confidence</span>
+    <span class="chip chip-purple">🏆 Best: ${data.best_source.toUpperCase()}</span>
+    <span class="chip chip-amber">📝 ${data.word_count} words · ${data.char_count} chars</span>
+  `;
+
+  // Confidence bars
+  const c = data.comparison;
+  document.getElementById("conf-section").innerHTML = `
+    <div class="conf-block">
+      <div class="conf-label"><span>Tesseract</span><span>${c.tesseract.confidence.toFixed(1)}%</span></div>
+      <div class="conf-bar-bg"><div class="conf-bar-fill" style="width:${c.tesseract.confidence}%"></div></div>
+    </div>
+    <div class="conf-block">
+      <div class="conf-label"><span>EasyOCR</span><span>${c.easyocr.confidence.toFixed(1)}%</span></div>
+      <div class="conf-bar-bg"><div class="conf-bar-fill" style="width:${c.easyocr.confidence}%;background:linear-gradient(90deg,#7c3aed,#f59e0b)"></div></div>
+    </div>
+  `;
+  // Animate bars after render
+  setTimeout(() => {}, 50);
+
+  // Summary
+  document.getElementById("summary-box").textContent = data.summary || "(Summary unavailable)";
+
+  // Comparison table
+  const isEasyBetter = data.best_source === "easyocr";
+  document.getElementById("comp-body").innerHTML = `
+    <tr class="${!isEasyBetter ? 'winner-row' : ''}">
+      <td>🔵 Tesseract</td>
+      <td>${c.tesseract.confidence.toFixed(1)}%</td>
+      <td><code style="font-size:.78rem;">${(c.tesseract.text || "").substring(0,120)}…</code></td>
+      <td>${!isEasyBetter ? '🏆 Winner' : ''}</td>
+    </tr>
+    <tr class="${isEasyBetter ? 'winner-row' : ''}">
+      <td>🟢 EasyOCR</td>
+      <td>${c.easyocr.confidence.toFixed(1)}%</td>
+      <td><code style="font-size:.78rem;">${(c.easyocr.text || "").substring(0,120)}…</code></td>
+      <td>${isEasyBetter ? '🏆 Winner' : ''}</td>
+    </tr>
+  `;
+
+  // Editable textarea (corrected text)
+  document.getElementById("extracted-textarea").value = data.corrected_text || data.raw_text;
+
+  // Corrections
+  const corrections = data.corrections || {};
+  const corrList = document.getElementById("corrections-list");
+  const entries = Object.entries(corrections);
+  if (entries.length) {
+    corrList.innerHTML = entries.map(([orig, fix]) =>
+      `<span class="corr-chip"><s>${orig}</s><strong>→ ${fix}</strong></span>`
+    ).join("");
+  } else {
+    corrList.innerHTML = `<span style="color:var(--text2);font-size:.8rem;">No corrections needed.</span>`;
+  }
+
+  // Highlighted output (no keyword yet)
+  updateHighlightedOutput(data.corrected_text || data.raw_text, [], data.corrections || {});
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   KEYWORD HIGHLIGHTING
+═══════════════════════════════════════════════════════════════════════ */
+function applyHighlight() {
+  const kw = document.getElementById("keyword-input").value.trim();
+  const text = document.getElementById("extracted-textarea").value;
+  const keywords = kw.split(",").map(k => k.trim()).filter(Boolean);
+  const corrections = lastResult ? (lastResult.corrections || {}) : {};
+  updateHighlightedOutput(text, keywords, corrections);
+}
+
+function updateHighlightedOutput(text, keywords, corrections) {
+  let html = escapeHtml(text);
+
+  // Highlight corrected words with wavy underline
+  Object.keys(corrections).forEach(orig => {
+    const escaped = escapeRegex(escapeHtml(orig));
+    html = html.replace(new RegExp(`\\b${escaped}\\b`, "gi"),
+      `<span class="correction-mark" title="Auto-corrected to: ${escapeHtml(corrections[orig])}">$&</span>`
+    );
+  });
+
+  // Highlight keywords
+  keywords.forEach(kw => {
+    const escaped = escapeRegex(escapeHtml(kw));
+    html = html.replace(new RegExp(`(${escaped})`, "gi"),
+      `<span class="kw-highlight">$1</span>`
+    );
+  });
+
+  document.getElementById("highlighted-output").innerHTML = html || "<em style='color:var(--text2);'>No text extracted.</em>";
+}
+
+function escapeHtml(t) {
+  return (t || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+function escapeRegex(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TEXT-TO-SPEECH
+═══════════════════════════════════════════════════════════════════════ */
+async function runTTS() {
+  const text = document.getElementById("extracted-textarea").value.trim();
+  if (!text) { toast("No text to convert.", "warn"); return; }
+  const langCode = lastResult ? lastResult.language_code : "en";
+  showLoader("Generating audio…");
+  try {
+    const res = await fetch(`${BACKEND}/api/tts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, lang: langCode })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    const audio = document.getElementById("audio-player");
+    audio.src = "data:audio/mp3;base64," + data.audio;
+    audio.style.display = "block";
+    audio.play();
+    toast("🔊 Audio ready!");
+  } catch (err) {
+    toast("TTS error: " + err.message, "error");
+  } finally {
+    hideLoader();
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   EXPORT
+═══════════════════════════════════════════════════════════════════════ */
+async function exportResult(format) {
+  if (!lastResult) { toast("Run OCR first.", "warn"); return; }
+  const text = document.getElementById("extracted-textarea").value;
+  showLoader(`Exporting as ${format.toUpperCase()}…`);
+  try {
+    const res = await fetch(`${BACKEND}/api/export`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        format,
+        text,
+        metadata: {
+          filename: window._currentFile?.name || "ocr_result",
+          language: lastResult.language,
+          confidence: lastResult.confidence,
+          best_source: lastResult.best_source
+        }
+      })
+    });
+    if (!res.ok) throw new Error("Export failed");
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `ocr_result.${format}`; a.click();
+    URL.revokeObjectURL(url);
+    toast(`✅ Exported as ${format.toUpperCase()}!`);
+  } catch (err) {
+    toast("Export error: " + err.message, "error");
+  } finally {
+    hideLoader();
+  }
+}
+
+function copyToClipboard() {
+  const text = document.getElementById("extracted-textarea").value;
+  if (!text) { toast("Nothing to copy.", "warn"); return; }
+  navigator.clipboard.writeText(text).then(() => toast("📋 Copied to clipboard!"));
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   CAMERA
+═══════════════════════════════════════════════════════════════════════ */
+async function startCamera() {
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+    document.getElementById("camera-feed").srcObject = cameraStream;
+    document.getElementById("cam-start-btn").disabled = true;
+    document.getElementById("cam-stop-btn").disabled = false;
+    document.getElementById("cam-ocr-btn").disabled = false;
+    document.getElementById("cam-live-btn").disabled = false;
+    toast("Camera started!");
+  } catch (err) {
+    toast("Camera access denied: " + err.message, "error");
+  }
+}
+
+function stopCamera() {
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(t => t.stop());
+    cameraStream = null;
+  }
+  if (liveOCRInterval) clearInterval(liveOCRInterval);
+  liveOCRActive = false;
+  document.getElementById("camera-feed").srcObject = null;
+  document.getElementById("cam-start-btn").disabled = false;
+  document.getElementById("cam-stop-btn").disabled = true;
+  document.getElementById("cam-ocr-btn").disabled = true;
+  document.getElementById("cam-live-btn").textContent = "🔴 Live OCR OFF";
+}
+
+function captureFrame() {
+  const video = document.getElementById("camera-feed");
+  const canvas = document.getElementById("camera-canvas");
+  canvas.width  = video.videoWidth  || 640;
+  canvas.height = video.videoHeight || 480;
+  canvas.getContext("2d").drawImage(video, 0, 0);
+  return canvas.toDataURL("image/jpeg", 0.85);
+}
+
+async function captureAndOCR() {
+  const imageData = captureFrame();
+  try {
+    const res = await fetch(`${BACKEND}/api/ocr`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ image_data: imageData })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    document.getElementById("camera-result").textContent = data.corrected_text || "(no text detected)";
+    document.getElementById("camera-chips").innerHTML = `
+      <span class="chip chip-green">🌐 ${data.language}</span>
+      <span class="chip chip-blue">${data.confidence.toFixed(1)}%</span>
+      <span class="chip chip-purple">🏆 ${data.best_source}</span>
+    `;
+    toast(`📷 Captured — ${data.word_count} words`);
+  } catch (err) {
+    toast("Camera OCR error: " + err.message, "error");
+  }
+}
+
+function toggleLiveOCR() {
+  const btn = document.getElementById("cam-live-btn");
+  if (!liveOCRActive) {
+    liveOCRActive = true;
+    btn.textContent = "🟢 Live OCR ON";
+    btn.style.background = "var(--success)";
+    btn.style.color = "#000";
+    liveOCRInterval = setInterval(captureAndOCR, 3000);
+    toast("Live OCR started (every 3s)");
+  } else {
+    liveOCRActive = false;
+    clearInterval(liveOCRInterval);
+    btn.textContent = "🔴 Live OCR OFF";
+    btn.style.background = "";
+    btn.style.color = "";
+    toast("Live OCR stopped.");
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   HISTORY
+═══════════════════════════════════════════════════════════════════════ */
+async function loadHistory() {
+  document.getElementById("search-q").value = "";
+  document.getElementById("search-start").value = "";
+  document.getElementById("search-end").value = "";
+  try {
+    const res = await fetch(`${BACKEND}/api/history`);
+    const data = await res.json();
+    renderHistory(data.history || [], data.history?.length + " recent scans");
+  } catch {
+    toast("Cannot load history. Check backend connection.", "error");
+  }
+}
+
+async function searchHistory() {
+  const q     = document.getElementById("search-q").value.trim();
+  const start = document.getElementById("search-start").value;
+  const end   = document.getElementById("search-end").value;
+  let url = `${BACKEND}/api/history/search?q=${encodeURIComponent(q)}`;
+  if (start) url += `&start=${start}`;
+  if (end)   url += `&end=${end}`;
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    renderHistory(data.results || [], `${data.count} result(s) for "${q}"`);
+  } catch {
+    toast("Search failed.", "error");
+  }
+}
+
+function renderHistory(items, countText) {
+  document.getElementById("history-count").textContent = countText || "";
+  const grid = document.getElementById("history-grid");
+  if (!items.length) {
+    grid.innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>No results found.</p></div>`;
+    return;
+  }
+  grid.innerHTML = items.map(item => `
+    <div class="history-card" onclick="previewHistoryItem(${JSON.stringify(item).replace(/"/g,'&quot;')})">
+      <div>
+        <h4>📄 ${escapeHtml(item.filename || "Untitled")}</h4>
+        <p>${escapeHtml((item.corrected || item.text || "").substring(0, 180))}</p>
+        <div style="margin-top:8px; font-size:.75rem; color:var(--text2);">
+          🌐 ${item.language || "?"} &nbsp;|&nbsp; 🏆 ${item.best_source || "?"}
+        </div>
+      </div>
+      <div class="history-meta">
+        ${new Date(item.timestamp).toLocaleDateString()}<br>
+        ${new Date(item.timestamp).toLocaleTimeString()}<br>
+        <span class="conf-badge">${(item.confidence||0).toFixed(1)}%</span>
+      </div>
+    </div>
+  `).join("");
+}
+
+function previewHistoryItem(item) {
+  const text = item.corrected || item.text || "";
+  const modal = document.createElement("div");
+  modal.style.cssText = `
+    position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;
+    display:flex;align-items:center;justify-content:center;padding:20px;
+  `;
+  modal.innerHTML = `
+    <div style="background:var(--surface);border-radius:var(--radius);padding:28px;max-width:680px;width:100%;max-height:80vh;overflow-y:auto;border:1px solid var(--border);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <strong>📄 ${escapeHtml(item.filename||"Scan")}</strong>
+        <button onclick="this.closest('[style]').remove()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--text);">×</button>
+      </div>
+      <div class="chips">
+        <span class="chip chip-green">🌐 ${item.language||"?"}</span>
+        <span class="chip chip-blue">${(item.confidence||0).toFixed(1)}% Confidence</span>
+      </div>
+      ${item.summary ? `<div class="summary-box" style="margin:12px 0;">${escapeHtml(item.summary)}</div>` : ""}
+      <div class="highlighted-text">${escapeHtml(text)}</div>
+      <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="navigator.clipboard.writeText(${JSON.stringify(text)});this.textContent='✓ Copied!'">📋 Copy Text</button>
+        <button class="btn btn-danger" onclick="deleteHistoryItem('${item.id}',this.closest('[style]'))">🗑 Delete</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  modal.addEventListener("click", e => { if (e.target === modal) modal.remove(); });
+}
+
+async function deleteHistoryItem(id, modal) {
+  if (!confirm("Delete this scan from history?")) return;
+  try {
+    await fetch(`${BACKEND}/api/history/${id}`, { method: "DELETE" });
+    modal.remove();
+    loadHistory();
+    toast("🗑 Scan deleted.");
+  } catch { toast("Delete failed.", "error"); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   PROGRESS STEPS
+═══════════════════════════════════════════════════════════════════════ */
+function showProgressSteps() {
+  document.getElementById("progress-steps").style.display = "flex";
+  for (let i = 1; i <= 5; i++) {
+    const el = document.getElementById("s" + i);
+    el.className = "step";
+  }
+}
+function activateStep(n) {
+  for (let i = 1; i < n; i++) document.getElementById("s"+i).className = "step done";
+  document.getElementById("s"+n).className = "step active";
+}
+function doneStep() {
+  for (let i = 1; i <= 5; i++) document.getElementById("s"+i).className = "step done";
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   LOADER + TOAST
+═══════════════════════════════════════════════════════════════════════ */
+function showLoader(msg) {
+  document.getElementById("loader-msg").textContent = msg || "Processing…";
+  document.getElementById("loader").classList.add("visible");
+}
+function hideLoader() {
+  document.getElementById("loader").classList.remove("visible");
+}
+function toast(msg, type = "ok") {
+  const el = document.createElement("div");
+  el.className = "toast " + (type === "error" ? "error" : type === "warn" ? "warn" : "");
+  el.textContent = msg;
+  document.getElementById("toast-container").appendChild(el);
+  setTimeout(() => el.remove(), 4500);
+}
+</script>
+</body>
+</html>
